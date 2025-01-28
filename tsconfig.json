@@ -1,0 +1,58 @@
+{
+  "compilerOptions": {
+    // Target ECMAScript version
+    "target": "ES2020",
+    
+    // Module system to use
+    "module": "commonjs",
+    
+    // Enables all strict type checking options
+    "strict": true,
+    
+    // Enable importing .json files
+    "resolveJsonModule": true,
+    
+    // Enables emit interop between CommonJS and ES Modules
+    "esModuleInterop": true,
+    
+    // Skip type checking of declaration files
+    "skipLibCheck": true,
+    
+    // Ensure consistent casing in file names
+    "forceConsistentCasingInFileNames": true,
+    
+    // Output directory for compiled files
+    "outDir": "./dist",
+    
+    // Root directory of source files
+    "rootDir": "./src",
+    
+    // Generate source maps for debugging
+    "sourceMap": true,
+    
+    // Allow JavaScript files to be compiled
+    "allowJs": true,
+    
+    // Report errors for fallthrough cases in switch statements
+    "noFallthroughCasesInSwitch": true,
+    
+    // Report errors on unused locals
+    "noUnusedLocals": true,
+    
+    // Report errors on unused parameters
+    "noUnusedParameters": true,
+    
+    // Enable experimental decorators
+    "experimentalDecorators": true,
+    
+    // Specify module resolution strategy
+    "moduleResolution": "node"
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
