@@ -1,9 +1,34 @@
 # UDP Client-Server Implementation
 
 ## Project Overview
-A TypeScript implementation of a UDP client-server system, demonstrating basic network communication using the User Datagram Protocol.
+
+A TypeScript implementation of a reliable, TCP-like protocol over UDP, extending a basic UDP client-server system. This project emulates a subset of TCP features, including connection establishment, ordered data transfer, acknowledgments, retransmission of lost packets, and connection teardown.
+
+.
+├── src/
+│ ├── client.ts # UDP client with reliable protocol logic
+│ ├── server.ts # UDP server with reliable protocol logic
+│ ├── protocol.ts # Utility functions for packet creation and parsing
+│ ├── states.ts # State machine definitions for client and server
+│ └── mayhem.ts # Functions to simulate packet loss/delay
+├── tsconfig.json # TypeScript configuration
+└── package.json # Project dependencies and scripts
+
+### Approach to the Problem
+
+To build a reliable protocol over UDP, we extended the existing basic UDP client-server system with the following features:
+
+Connection Establishment: Implemented a 3-step handshake (SYN, SYN-ACK, ACK) using a state machine.
+Ordered Data Transfer: Added sequence numbers to segment messages, ensuring correct order with a stop-and-wait protocol.
+Acknowledgments: Included acknowledgment numbers in the packet header to confirm receipt.
+Retransmission: Simulated packet loss ("mayhem") by randomly dropping packets and implemented retransmission with timeouts.
+Connection Teardown: Added a simple 2-step teardown (FIN, ACK) using the state machine.
+Readability: Added console print statements to log packet types, states, and transitions for easy debugging and demonstration.
+
+The protocol header is encoded as JSON in the UDP payload, containing type, seq, ack, and data fields. Utility functions handle packet creation, parsing, and state transitions.
 
 ## Technology Choices
+
 - **Language**: TypeScript (chosen for type safety and familiarity)
 - **Runtime**: Node.js
 - **Key Packages**:
@@ -14,6 +39,7 @@ A TypeScript implementation of a UDP client-server system, demonstrating basic n
 ## Initial Setup Guidance (provided by Claude)
 
 ### Project Structure Setup
+
 ```bash
 npm init -y
 npm install typescript @types/node
@@ -21,90 +47,41 @@ npm install -D ts-node
 ```
 
 ### TypeScript Configuration
+
 The `tsconfig.json` was configured with best practices for a Node.js TypeScript project:
+
 - ES2020 as target JavaScript version
 - Strict type checking enabled
 - Source maps for debugging
 - Node.js-style module resolution
 - Various safety checks (unused variables, switch fallthrough)
 
-### Key Architectural Differences between Client and Server
-
-Server needs specific port binding:
-```typescript
-const server = dgram.createSocket('udp4');
-server.bind(PORT); // Server NEEDS to bind to a specific port
-```
-
-Client uses dynamic port allocation:
-```typescript
-const client = dgram.createSocket('udp4');
-// Client does NOT need to bind! It will automatically get a random available port
-```
-
-### Input Handling Implementation
-Combined readline module with UDP client:
-```typescript
-import dgram from 'dgram';
-import readline from 'readline';
-
-const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-});
-
-// Setup readline question/input handling
-function askForInput() {
-    rl.question('Enter message: ', (message) => {
-        client.send(message, PORT, 'localhost', (err) => {
-            if (err) console.error('Failed to send:', err);
-            else console.log('Message sent to server');
-        });
-        askForInput();
-    });
-}
-```
-
 ## Implementation Steps
 
 1. **Project Setup**
-   - Created new project structure
-   - Set up TypeScript configuration with `tsconfig.json`
-   - Created separate files for client (`client.ts`) and server (`server.ts`)
 
-2. **Initial Development**
-   ```bash
-   npm tsx server.ts  # Terminal 1
-   npm tsx client.ts  # Terminal 2
-   ```
+   - Extended the existing UDP setup with new files for protocol logic and state management.
 
-3. **Challenges & Solutions**
-   - **Challenge**: "Address in Use" error when running client
-   - **Solution**: Removed binding in client code, allowing dynamic port assignment
-   - **Key Learning**: UDP clients don't need to bind to specific ports
+2. **Protocol Design**
 
-4. **Input Handling**
-   - Implemented readline interface for user input
-   - Combined UDP communication with interactive terminal input
-   - Successfully established two-way communication
+- Defined a JSON-based header with type, seq, ack, and data fields.
 
-## Project Structure
-```
-.
-├── src/
-│   ├── client.ts
-│   └── server.ts
-├── tsconfig.json
-└── package.json
-```
+3. **State Machine**
 
-## Core Features
-- UDP server listening on specific port
-- UDP client with dynamic port assignment
-- Interactive user input handling
-- Two-way message communication
+   - Structured connection setup and teardown as finite state machines in states.ts.
+
+4. **Data Transfer**
+   Implemented stop-and-wait with sequence numbers and acknowledgments, splitting large messages into segments if needed.
+
+5. **Retransmission**
+
+   - Added timeouts and retransmission logic, with mayhem.ts simulating packet loss.
+
+6. **Logging**
+   - Added console.log statements throughout to display packet types, sequence numbers, and state changes.
 
 ## Running the Project
+
 1. Start the server:
    ```bash
    npm tsx src/server.ts
@@ -115,52 +92,35 @@ function askForInput() {
    ```
 
 ## Learning Resources
+
 - [Node.js dgram Documentation](https://nodejs.org/api/dgram.html)
 - [TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [Node.js readline Documentation](https://nodejs.org/api/readline.html)
 
-## Acknowledgments
-Special thanks to Claude AI for providing guidance on:
-- TypeScript project structure
-- UDP client/server architecture differences
-- Input handling implementation
-- Debugging "Address in Use" errors
-- Best practices for TypeScript configuration
+## Screenshots
 
+1. Connection Establishment 
 
+[Connection Establishment](screenshot1.png)
 
-### My thoughts while working on this project:
+Shows the client sending SYN, server responding with SYN-ACK, and client sending ACK.
 
-Ok, choosing TypeScript - since it's a language I'm a bit more comfortable with compared to Python. 
+2. Data Transfer
 
-I'm going to ask Claude - to give me some guidance on how to set up a general TS project structure for setting up a UDP server and client.
+Demonstrates sending ASCII text (e.g., "Hello, World!") from client to server, with sequence numbers and acknowledgments printed.
 
+[Data Transfer](screenshot2.png)
 
-Ok - taking a look at the documentation for NodeJS on the website.
+3 Connection Teardown
 
-https://nodejs.org/api/dgram.html
+Shows the client or server sending FIN, followed by an ACK, with states transitioning to CLOSED.
 
-Ok - so I'm going to create a new project and install the dgram package.
+[Connection Teardown](screenshot3.png)
 
-Looks like the dgram package is built-in to NodeJS, so I can just import it.
+## Challenges & Solutions
 
-So I'm going to create a new file called client.ts and a new file called server.ts.
+When I started building my "TCP over UDP" project, I hit a few bumps. First, I got an "Address in Use" error because both my client and server were fighting over the same port, but I learned to let the client pick a random port instead, which fixed it. Then, I struggled with making UDP reliable since it doesn’t naturally handle lost or out-of-order messages—I didn’t know how to add sequence numbers or retransmission. 
 
-I'm going to create a new file called tsconfig.json w/ standard configuration. 
+I also had trouble combining my simple original client, which just sent messages, with the new fancy code that had a state machine and reliability features. Finally, my handshake got stuck because the client kept waiting for a reply that never came, and it gave up before I could type "Hello, World!". 
 
-I also am going to use a dependency called tsx to run the TypeScript files.
-
-In two separate terminals, I'm going to run the following commands:
-
-npm tsx server.ts
-npm tsx client.ts
-
-This should start the server and client.
-
-New error! Server in USE! Ok - took a look back at the docs and instead set up the client to just send a message to the server/not bind. 
-
-Successfully sent message to server!
-
-Now I'm going to add the logic to listen to input from the client. Combining the NodeJS readline package and the TypeScript ReadLine interface.
-
-Successfully received message from server!
+With help, I sorted it out: we freed up the ports, added a packet structure and retransmission logic, merged my old and new code by wrapping my input loop in the state machine, and tweaked the handshake so the client wouldn’t wait unnecessarily. Now, I’ve got a working program that reliably sends "Hello, World!" just like the assignment wanted!
